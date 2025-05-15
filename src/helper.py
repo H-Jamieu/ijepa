@@ -19,6 +19,16 @@ from src.utils.tensors import trunc_normal_
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger()
 
+def remove_module_prefix(state_dict):
+    """Removes 'module.' prefix from state_dict keys if present."""
+    from collections import OrderedDict
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        if k.startswith('module.'):
+            new_state_dict[k[7:]] = v  # remove 'module.' prefix
+        else:
+            new_state_dict[k] = v
+    return new_state_dict
 
 def load_checkpoint(
     device,
@@ -34,21 +44,21 @@ def load_checkpoint(
         epoch = checkpoint['epoch']
 
         # -- loading encoder
-        pretrained_dict = checkpoint['encoder']
+        pretrained_dict = remove_module_prefix(checkpoint['encoder'])
         msg = encoder.load_state_dict(pretrained_dict)
         logger.info(f'loaded pretrained encoder from epoch {epoch} with msg: {msg}')
 
         # -- loading predictor
-        pretrained_dict = checkpoint['predictor']
+        pretrained_dict = remove_module_prefix(checkpoint['predictor'])
         msg = predictor.load_state_dict(pretrained_dict)
-        logger.info(f'loaded pretrained encoder from epoch {epoch} with msg: {msg}')
+        logger.info(f'loaded pretrained predictor from epoch {epoch} with msg: {msg}')
 
         # -- loading target_encoder
         if target_encoder is not None:
             print(list(checkpoint.keys()))
-            pretrained_dict = checkpoint['target_encoder']
+            pretrained_dict = remove_module_prefix(checkpoint['target_encoder'])
             msg = target_encoder.load_state_dict(pretrained_dict)
-            logger.info(f'loaded pretrained encoder from epoch {epoch} with msg: {msg}')
+            logger.info(f'loaded pretrained target_encoder from epoch {epoch} with msg: {msg}')
 
         # -- loading optimizer
         opt.load_state_dict(checkpoint['opt'])

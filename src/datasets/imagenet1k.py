@@ -74,7 +74,7 @@ class ImageNet(torchvision.datasets.ImageFolder):
         train=True,
         job_id=None,
         local_rank=None,
-        copy_data=True,
+        copy_data=False,
         index_targets=False
     ):
         """
@@ -92,7 +92,7 @@ class ImageNet(torchvision.datasets.ImageFolder):
         """
 
         suffix = 'train/' if train else 'val/'
-        data_path = None
+        data_path = image_folder
         if copy_data:
             logger.info('copying data locally')
             data_path = copy_imgnt_locally(
@@ -102,8 +102,8 @@ class ImageNet(torchvision.datasets.ImageFolder):
                 tar_file=tar_file,
                 job_id=job_id,
                 local_rank=local_rank)
-        if (not copy_data) or (data_path is None):
-            data_path = os.path.join(root, image_folder, suffix)
+        # if (not copy_data) or (data_path is None):
+        #     data_path = os.path.join(root, image_folder, suffix)
         logger.info(f'data-path {data_path}')
 
         super(ImageNet, self).__init__(root=data_path, transform=transform)
